@@ -17,6 +17,38 @@ public class Position {
         this.pseudo = pseudo;
     }
 
+    public int getIdposition() {
+        return idposition;
+    }
+
+    public void setIdposition(int idposition) {
+        this.idposition = idposition;
+    }
+
+    public String getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
+    }
+
+    public String getPseudo() {
+        return pseudo;
+    }
+
+    public void setPseudo(String pseudo) {
+        this.pseudo = pseudo;
+    }
+
     @Override
     public String toString() {
         return "Position{" +
