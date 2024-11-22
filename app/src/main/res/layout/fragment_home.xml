@@ -18,19 +18,6 @@
         android:textSize="48sp"
         android:textStyle="bold" />
 
-    <!-- Bouton pour télécharger les positions -->
-    <Button
-        android:id="@+id/btnDownload"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#000000"
-        android:text="DOWNLOAD"
-        android:textAlignment="center"
-        android:textAllCaps="true"
-        android:textColor="#FDFCFC"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
     <!-- SupportMapFragment pour afficher la carte -->
     <fragment
         android:id="@+id/map"

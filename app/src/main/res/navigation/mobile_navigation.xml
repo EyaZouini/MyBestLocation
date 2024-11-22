@@ -13,9 +13,9 @@
 
     <fragment
         android:id="@+id/nav_gallery"
-        android:name="com.example.mybestlocation.ui.gallery.GalleryFragment"
+        android:name="com.example.mybestlocation.ui.createPosition.CreatePositionFragment"
         android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        tools:layout="@layout/fragment_create_position" />
 
     <fragment
         android:id="@+id/nav_slideshow"
