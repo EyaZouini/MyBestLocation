@@ -2,21 +2,26 @@ package com.example.mybestlocation;
 
 public class Position {
     int idposition;
-    String longitude,latitude,pseudo;
+    String longitude, latitude, pseudo, type;
 
-    public Position(int idposition, String pseudo, String longitude, String latitude) {
+    // Constructeur avec tous les champs
+    public Position(int idposition, String pseudo, String longitude, String latitude, String type) {
         this.idposition = idposition;
         this.pseudo = pseudo;
         this.longitude = longitude;
         this.latitude = latitude;
+        this.type = type;
     }
 
-    public Position(String longitude, String latitude, String pseudo) {
+    // Constructeur sans l'ID (par exemple pour une insertion)
+    public Position(String longitude, String latitude, String pseudo, String type) {
         this.longitude = longitude;
         this.latitude = latitude;
         this.pseudo = pseudo;
+        this.type = type;
     }
 
+    // Getters et Setters
     public int getIdposition() {
         return idposition;
     }
@@ -49,13 +54,16 @@ public class Position {
         this.pseudo = pseudo;
     }
 
+    public String getType() {
+        return type; // Getter pour 'type'
+    }
+
+    public void setType(String type) {
+        this.type = type; // Setter pour 'type'
+    }
+
     @Override
     public String toString() {
-        return "Position{" +
-                "idposition=" + idposition +
-                ", longitude='" + longitude + '\'' +
-                ", latitude='" + latitude + '\'' +
-                ", pseudo='" + pseudo + '\'' +
-                '}';
+        return pseudo + " (" + type + ")"; // Inclure 'type' dans la représentation textuelle
     }
 }

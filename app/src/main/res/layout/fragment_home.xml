@@ -25,6 +25,11 @@
         android:layout_width="match_parent"
         android:layout_height="300dp"/>
 
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/search_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:queryHint="Search" />
 
     <!-- Liste des positions -->
     <ListView

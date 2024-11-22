@@ -40,7 +40,7 @@ public class Download extends AsyncTask<Void, Position, Void> {
     @Override
     protected Void doInBackground(Void... voids) {
         try {
-            Thread.sleep(1000);  // Simule un délai
+            Thread.sleep(1000); // Simule un délai
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -59,6 +59,7 @@ public class Download extends AsyncTask<Void, Position, Void> {
                     String pseudo = ligne.getString("pseudo");
                     String longitude = ligne.getString("longitude");
                     String latitude = ligne.getString("latitude");
+                    String type = ligne.getString("type");
 
                     // Vérifie si la position existe déjà
                     boolean exists = false;
@@ -70,8 +71,8 @@ public class Download extends AsyncTask<Void, Position, Void> {
                     }
 
                     if (!exists) {
-                        data.add(new Position(idposition, pseudo, longitude, latitude));
-                        publishProgress(new Position(idposition, pseudo, longitude, latitude));  // Met à jour le progrès
+                        data.add(new Position(idposition, pseudo, longitude, latitude, type));
+                        publishProgress(new Position(idposition, pseudo, longitude, latitude,type));  // Met à jour le progrès
                     }
                 }
             }

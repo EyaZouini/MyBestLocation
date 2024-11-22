@@ -7,14 +7,12 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-
-import com.example.mybestlocation.Config;
-import com.example.mybestlocation.JSONParser;
-import com.example.mybestlocation.Position;
+import com.example.mybestlocation.R;
 import com.example.mybestlocation.databinding.FragmentCreatePositionBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -49,10 +47,20 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
+        // Configuration du Spinner pour le type
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                getContext(),
+                R.array.position_types, // Assurez-vous d'avoir défini cela dans strings.xml
+                android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.typeSpinner.setAdapter(adapter);
+
         binding.btnSavePosition.setOnClickListener(view -> {
             if (selectedLocation != null && !TextUtils.isEmpty(binding.nameInput.getText())) {
                 String name = binding.nameInput.getText().toString();
-                savePosition(selectedLocation.latitude, selectedLocation.longitude, name);
+                String type = binding.typeSpinner.getSelectedItem().toString(); // Récupère le type sélectionné
+                savePosition(selectedLocation.latitude, selectedLocation.longitude, name, type);
                 Toast.makeText(getContext(), "Position saved!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(getContext(), "Please select a location and enter a name", Toast.LENGTH_SHORT).show();
@@ -62,14 +70,16 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
         return root;
     }
 
-    private void savePosition(double latitude, double longitude, String name) {
-        // Create a HashMap to hold the data
+
+    private void savePosition(double latitude, double longitude, String name, String type) {
+        // Créer une HashMap pour contenir les données
         HashMap<String, String> params = new HashMap<>();
         params.put("latitude", String.valueOf(latitude));
         params.put("longitude", String.valueOf(longitude));
         params.put("pseudo", name);
+        params.put("type", type); // Ajouter le type
 
-        // Execute the AsyncTask with context
+        // Exécuter l'AsyncTask avec le contexte
         new SavePositionTask(getContext()).execute(params);
     }
 

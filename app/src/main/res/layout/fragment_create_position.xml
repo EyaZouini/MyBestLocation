@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.create.CreatePositionFragment">
+    tools:context=".ui.createPosition.CreatePositionFragment">
 
     <!-- Title -->
 
@@ -36,11 +36,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Name input field -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/name_input_layout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:layout_marginTop="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -53,14 +52,26 @@
             android:hint="Enter Position Name" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Spinner for selecting the type -->
+    <Spinner
+        android:id="@+id/type_spinner"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/name_input_layout" />
+
     <!-- Button to save the position -->
     <Button
         android:id="@+id/btn_save_position"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Save Position"
-        app:layout_constraintTop_toBottomOf="@id/name_input_layout"
+        app:layout_constraintTop_toBottomOf="@id/type_spinner"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
