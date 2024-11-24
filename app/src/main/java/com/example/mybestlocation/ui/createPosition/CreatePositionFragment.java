@@ -22,10 +22,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.HashMap;
 
 public class CreatePositionFragment extends Fragment implements OnMapReadyCallback {
@@ -34,34 +30,37 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
     private GoogleMap mMap;
     private MapView mapView;
     private FusedLocationProviderClient fusedLocationClient;
-    private LatLng selectedLocation;
+    private LatLng selectedLocation; // Stores the user-selected location on the map
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentCreatePositionBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
+        // Initialize FusedLocationProviderClient for location services
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
+        // Setup MapView
         mapView = binding.mapCreatePosition;
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
-        // Configuration du Spinner pour le type
+        // Configure the Spinner for position types
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 getContext(),
-                R.array.position_types, // Assurez-vous d'avoir défini cela dans strings.xml
+                R.array.position_types, // Ensure this array is defined in strings.xml
                 android.R.layout.simple_spinner_item
         );
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.typeSpinner.setAdapter(adapter);
 
+        // Set up the Save button
         binding.btnSavePosition.setOnClickListener(view -> {
-            if (selectedLocation != null && !TextUtils.isEmpty(binding.nameInput.getText())) {
-                String name = binding.nameInput.getText().toString();
-                String type = binding.typeSpinner.getSelectedItem().toString(); // Récupère le type sélectionné
+            String name = binding.nameInput.getText().toString();
+            String type = binding.typeSpinner.getSelectedItem().toString();
+
+            if (selectedLocation != null && !TextUtils.isEmpty(name)) {
                 savePosition(selectedLocation.latitude, selectedLocation.longitude, name, type);
-                Toast.makeText(getContext(), "Position saved!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(getContext(), "Please select a location and enter a name", Toast.LENGTH_SHORT).show();
             }
@@ -70,38 +69,41 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
         return root;
     }
 
-
+    /**
+     * Save position data to the server.
+     *
+     * @param latitude  Latitude of the position
+     * @param longitude Longitude of the position
+     * @param name      Name of the position
+     * @param type      Type of the position
+     */
     private void savePosition(double latitude, double longitude, String name, String type) {
-        // Créer une HashMap pour contenir les données
         HashMap<String, String> params = new HashMap<>();
         params.put("latitude", String.valueOf(latitude));
         params.put("longitude", String.valueOf(longitude));
         params.put("pseudo", name);
-        params.put("type", type); // Ajouter le type
+        params.put("type", type);
 
-        // Exécuter l'AsyncTask avec le contexte
-        new SavePositionTask(getContext()).execute(params);
+        new SavePositionTask(getContext()).execute(params); // Execute the AsyncTask
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(getActivity(),
+        // Request location permissions if not already granted
+        if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(),
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
             return;
         }
 
         mMap.setMyLocationEnabled(true);
 
-        // Get the current location on map load
-        fusedLocationClient.getLastLocation().addOnSuccessListener(getActivity(), location -> {
+        // Display the user's current location when the map loads
+        fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), location -> {
             if (location != null) {
-                // Use the same location logic from HomeFragment
                 LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
                 mMap.addMarker(new MarkerOptions().position(currentLocation).title("My Location"));
@@ -110,7 +112,7 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
             }
         });
 
-        // Set a listener to select a location on the map
+        // Set a listener for map clicks to allow users to select a location
         mMap.setOnMapClickListener(latLng -> {
             if (selectedLocation != null) {
                 mMap.clear(); // Clear the previous marker
@@ -120,6 +122,7 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
         });
     }
 
+    // Handle MapView lifecycle events
     @Override
     public void onResume() {
         super.onResume();

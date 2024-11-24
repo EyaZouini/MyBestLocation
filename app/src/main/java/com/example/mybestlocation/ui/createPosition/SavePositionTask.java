@@ -3,18 +3,15 @@ package com.example.mybestlocation.ui.createPosition;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
-
 import com.example.mybestlocation.Config;
 import com.example.mybestlocation.JSONParser;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.HashMap;
 
-// Move SavePositionTask outside of the fragment, make it public
+
 public class SavePositionTask extends AsyncTask<HashMap<String, String>, Void, JSONObject> {
-    private Context context;
+    private final Context context;
 
     public SavePositionTask(Context context) {
         this.context = context;
@@ -22,14 +19,21 @@ public class SavePositionTask extends AsyncTask<HashMap<String, String>, Void, J
 
     @Override
     protected JSONObject doInBackground(HashMap<String, String>... params) {
-        HashMap<String, String> data = params[0];
-        JSONParser jsonParser = new JSONParser();
-        return jsonParser.makeHttpRequest(Config.Url_AddPosition, "POST", data);
+        if (params.length > 0) {
+            HashMap<String, String> data = params[0];
+            JSONParser jsonParser = new JSONParser();
+            return jsonParser.makeHttpRequest(Config.Url_AddPosition, "POST", data);
+        }
+        return null;
     }
 
     @Override
     protected void onPostExecute(JSONObject response) {
-        super.onPostExecute(response);
+        if (response == null) {
+            Toast.makeText(context, "Error: No response from server", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         try {
             int success = response.getInt("success");
             if (success > 0) {
@@ -39,7 +43,7 @@ public class SavePositionTask extends AsyncTask<HashMap<String, String>, Void, J
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(context, "Error saving position", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Error processing server response", Toast.LENGTH_SHORT).show();
         }
     }
 }

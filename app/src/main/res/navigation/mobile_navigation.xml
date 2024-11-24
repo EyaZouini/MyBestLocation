@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
+    android:label="Crée Position"
     app:startDestination="@+id/nav_home">
 
     <fragment
@@ -19,7 +20,7 @@
 
     <fragment
         android:id="@+id/nav_slideshow"
-        android:name="com.example.mybestlocation.ui.slideshow.SlideshowFragment"
+        android:name="com.example.mybestlocation.ui.slideshow.FriendsFragment"
         android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        tools:layout="@layout/fragment_friends" />
 </navigation>

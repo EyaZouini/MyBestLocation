@@ -18,9 +18,9 @@ import java.util.ArrayList;
 public class Download extends AsyncTask<Void, Position, Void> {
 
     private AlertDialog alert;
-    private GoogleMap mMap;
-    private ArrayList<Position> data;
-    private ListView listView;  // ListView ici, pas ArrayAdapter
+    private final GoogleMap mMap;
+    private final ArrayList<Position> data;
+    private final ListView listView;
 
     public Download(GoogleMap map, ArrayList<Position> data, ListView listView) {
         this.mMap = map;
@@ -31,8 +31,8 @@ public class Download extends AsyncTask<Void, Position, Void> {
     @Override
     protected void onPreExecute() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(listView.getContext());
-        dialog.setTitle("Téléchargement");
-        dialog.setMessage("Veuillez patienter...");
+        dialog.setTitle("Téléchargement")
+                .setMessage("Veuillez patienter...");
         alert = dialog.create();
         alert.show();
     }
@@ -40,28 +40,26 @@ public class Download extends AsyncTask<Void, Position, Void> {
     @Override
     protected Void doInBackground(Void... voids) {
         try {
-            Thread.sleep(1000); // Simule un délai
+            Thread.sleep(1000); // Simulate a delay
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        // Récupère les données depuis le backend
         JSONParser parser = new JSONParser();
         JSONObject response = parser.makeRequest(Config.Url_GetAll);
 
         try {
-            int success = response.getInt("success");
-            if (success > 0) {
-                JSONArray tab = response.getJSONArray("positions");
-                for (int i = 0; i < tab.length(); i++) {
-                    JSONObject ligne = tab.getJSONObject(i);
-                    int idposition = ligne.getInt("idposition");
-                    String pseudo = ligne.getString("pseudo");
-                    String longitude = ligne.getString("longitude");
-                    String latitude = ligne.getString("latitude");
-                    String type = ligne.getString("type");
+            if (response.getInt("success") > 0) {
+                JSONArray positionsArray = response.getJSONArray("positions");
+                for (int i = 0; i < positionsArray.length(); i++) {
+                    JSONObject positionObject = positionsArray.getJSONObject(i);
+                    int idposition = positionObject.getInt("idposition");
+                    String pseudo = positionObject.getString("pseudo");
+                    String longitude = positionObject.getString("longitude");
+                    String latitude = positionObject.getString("latitude");
+                    String type = positionObject.getString("type");
 
-                    // Vérifie si la position existe déjà
+                    // Check if position already exists
                     boolean exists = false;
                     for (Position position : data) {
                         if (position.getIdposition() == idposition) {
@@ -71,8 +69,9 @@ public class Download extends AsyncTask<Void, Position, Void> {
                     }
 
                     if (!exists) {
-                        data.add(new Position(idposition, pseudo, longitude, latitude, type));
-                        publishProgress(new Position(idposition, pseudo, longitude, latitude,type));  // Met à jour le progrès
+                        Position newPosition = new Position(idposition, pseudo, longitude, latitude, type);
+                        data.add(newPosition);
+                        publishProgress(newPosition); // Update progress
                     }
                 }
             }
@@ -85,27 +84,23 @@ public class Download extends AsyncTask<Void, Position, Void> {
 
     @Override
     protected void onProgressUpdate(Position... values) {
-        super.onProgressUpdate(values);
         Position position = values[0];
 
-        // Ajoute la nouvelle position dans le ListView
+        // Update the ListView with new data
         if (listView != null) {
             ArrayAdapter<Position> adapter = new ArrayAdapter<>(listView.getContext(), android.R.layout.simple_list_item_1, data);
             listView.setAdapter(adapter);
         }
 
-        // Ajoute un marqueur sur la carte
+        // Add a marker to the map
         if (mMap != null) {
-            double lat = Double.parseDouble(position.getLatitude());
-            double lng = Double.parseDouble(position.getLongitude());
-            LatLng latLng = new LatLng(lat, lng);
+            LatLng latLng = new LatLng(Double.parseDouble(position.getLatitude()), Double.parseDouble(position.getLongitude()));
             mMap.addMarker(new MarkerOptions().position(latLng).title(position.getPseudo()));
         }
     }
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        super.onPostExecute(aVoid);
         if (alert != null && alert.isShowing()) {
             alert.dismiss();
         }
