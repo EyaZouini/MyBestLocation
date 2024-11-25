@@ -81,12 +81,16 @@ public class Download extends AsyncTask<Void, Position, Void> {
         // Notify adapter and update UI
         adapter.notifyDataSetChanged();
 
-        // Add marker to map
+        // Add marker to map with type information
         if (mMap != null) {
             LatLng latLng = new LatLng(Double.parseDouble(position.getLatitude()), Double.parseDouble(position.getLongitude()));
-            mMap.addMarker(new MarkerOptions().position(latLng).title(position.getPseudo()));
+            mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .title(position.getPseudo()) // Title remains the pseudo
+                    .snippet("Type: " + position.getType())); // Include type as snippet
         }
     }
+
 
     @Override
     protected void onPostExecute(Void aVoid) {

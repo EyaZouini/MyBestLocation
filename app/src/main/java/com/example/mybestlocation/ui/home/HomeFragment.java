@@ -135,7 +135,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
             mMap.addMarker(new MarkerOptions()
                     .position(latLng)
-                    .title(position.getPseudo()));
+                    .title(position.getPseudo() + " (" + position.getType() + ")")); // Inclure le type
         });
 
         binding.rvPositions.setLayoutManager(new LinearLayoutManager(requireActivity()));
@@ -143,6 +143,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         new Download(mMap, data, adapter).execute();
     }
+
 
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {

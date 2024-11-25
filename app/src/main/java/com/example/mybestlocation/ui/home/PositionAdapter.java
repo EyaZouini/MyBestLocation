@@ -38,25 +38,33 @@ public class PositionAdapter extends RecyclerView.Adapter<PositionAdapter.Positi
     public void onBindViewHolder(@NonNull PositionViewHolder holder, int position) {
         Position currentPosition = positions.get(position);
 
-        holder.textView.setText(currentPosition.toString());
+        // Afficher le pseudo et le type
+        holder.pseudoTextView.setText(currentPosition.getPseudo());
+        holder.typeTextView.setText(currentPosition.getType()); // Afficher le type
+
+        // Changer la couleur de fond si sélectionné
         holder.itemView.setBackgroundColor(holder.getAdapterPosition() == selectedPosition
                 ? ContextCompat.getColor(context, R.color.selected_item_color)
                 : ContextCompat.getColor(context, android.R.color.transparent));
 
+        // Gérer le clic sur l'élément
         holder.itemView.setOnClickListener(v -> {
             selectedPosition = holder.getAdapterPosition();
             notifyDataSetChanged();
             listener.onItemClick(currentPosition);
         });
 
+        // Gérer l'icône de suppression
         holder.deleteIcon.setOnClickListener(v -> {
             new DeletePositionTask(context, new DeletePositionTask.DeleteCallback() {
                 @Override
                 public void onDeleteSuccess() {
+                    // Optionnel : Notifier l'utilisateur en cas de succès
                 }
 
                 @Override
                 public void onDeleteFailure() {
+                    // Optionnel : Notifier l'utilisateur en cas d'échec
                 }
             }).execute(String.valueOf(currentPosition.getIdposition()));
 
@@ -65,6 +73,7 @@ public class PositionAdapter extends RecyclerView.Adapter<PositionAdapter.Positi
             notifyItemRangeChanged(holder.getAdapterPosition(), positions.size());
         });
     }
+
 
     @Override
     public int getItemCount() {
@@ -77,15 +86,18 @@ public class PositionAdapter extends RecyclerView.Adapter<PositionAdapter.Positi
     }
 
     static class PositionViewHolder extends RecyclerView.ViewHolder {
-        final TextView textView;
+        final TextView pseudoTextView;
+        final TextView typeTextView; // Nouveau champ
         final ImageView deleteIcon;
 
         public PositionViewHolder(@NonNull View itemView) {
             super(itemView);
-            textView = itemView.findViewById(R.id.tv_position);
+            pseudoTextView = itemView.findViewById(R.id.tv_position);
+            typeTextView = itemView.findViewById(R.id.tv_type); // Lier le TextView du type
             deleteIcon = itemView.findViewById(R.id.iv_delete);
         }
     }
+
 
     public Context getContext() {
         return context;
