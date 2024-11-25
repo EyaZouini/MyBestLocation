@@ -26,7 +26,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationCallback;
 import androidx.appcompat.widget.SearchView;
-import android.widget.Toast;
 import java.util.ArrayList;
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
@@ -45,8 +44,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        searchView = binding.searchBar;  // Initialize the SearchView
-
+        searchView = binding.searchBar;
         initializeLocationServices();
         setupMap();
         setupSearchView();
@@ -58,13 +56,11 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                // You can handle query submission here if needed
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // When the text in the search view changes, filter the list
                 filterPositions(newText);
                 return true;
             }
@@ -74,27 +70,22 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private void filterPositions(String query) {
         ArrayList<Position> filteredList = new ArrayList<>();
         for (Position position : data) {
-            // Check if the pseudo or type contains the query text (case-insensitive)
             if (position.getPseudo().toLowerCase().contains(query.toLowerCase()) ||
                     position.getType().toLowerCase().contains(query.toLowerCase())) {
                 filteredList.add(position);
             }
         }
-
-        // Update the adapter with the filtered list
         adapter.updateList(filteredList);
     }
-
-
 
     private void initializeLocationServices() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
         locationRequest = LocationRequest.create()
-                .setInterval(60000) // 1 minute
-                .setFastestInterval(30000) // 30 seconds
+                .setInterval(60000)
+                .setFastestInterval(30000)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setSmallestDisplacement(10); // 10 meters
+                .setSmallestDisplacement(10);
 
         locationCallback = new LocationCallback() {
             @Override
@@ -137,7 +128,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
     private void loadPositions() {
         adapter = new PositionAdapter(requireActivity(), data, position -> {
-            // Handle the click on the item
             LatLng latLng = new LatLng(
                     Double.parseDouble(position.getLatitude()),
                     Double.parseDouble(position.getLongitude())
@@ -146,14 +136,11 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             mMap.addMarker(new MarkerOptions()
                     .position(latLng)
                     .title(position.getPseudo()));
-
-            Toast.makeText(requireContext(), "Position: " + position.getPseudo(), Toast.LENGTH_SHORT).show();
         });
 
         binding.rvPositions.setLayoutManager(new LinearLayoutManager(requireActivity()));
         binding.rvPositions.setAdapter(adapter);
 
-        // Pass the adapter to the Download task
         new Download(mMap, data, adapter).execute();
     }
 
@@ -175,8 +162,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startLocationUpdates();
-        } else {
-            Toast.makeText(getActivity(), "Permission denied to access location", Toast.LENGTH_SHORT).show();
         }
     }
 }

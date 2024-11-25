@@ -9,12 +9,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.HashMap;
 
-
 public class SavePositionTask extends AsyncTask<HashMap<String, String>, Void, JSONObject> {
-    private final Context context;
 
-    public SavePositionTask(Context context) {
+    private final Context context;
+    private final SavePositionListener listener;
+
+    public SavePositionTask(Context context, SavePositionListener listener) {
         this.context = context;
+        this.listener = listener;
     }
 
     @Override
@@ -30,20 +32,36 @@ public class SavePositionTask extends AsyncTask<HashMap<String, String>, Void, J
     @Override
     protected void onPostExecute(JSONObject response) {
         if (response == null) {
-            Toast.makeText(context, "Error: No response from server", Toast.LENGTH_SHORT).show();
+            showToast("Error: No response from server");
             return;
         }
 
         try {
-            int success = response.getInt("success");
-            if (success > 0) {
-                Toast.makeText(context, "Position saved successfully!", Toast.LENGTH_SHORT).show();
+            if (response.getInt("success") > 0) {
+                showToast("Position saved successfully!");
+                if (listener != null) listener.onSavePositionSuccess();
             } else {
-                Toast.makeText(context, "Failed to save position!", Toast.LENGTH_SHORT).show();
+                showToast("Failed to save position!");
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(context, "Error processing server response", Toast.LENGTH_SHORT).show();
+            showToast("Error processing server response");
         }
+    }
+
+    /**
+     * Displays a Toast message.
+     *
+     * @param message The message to be displayed.
+     */
+    private void showToast(String message) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Interface for handling success callbacks after saving a position.
+     */
+    public interface SavePositionListener {
+        void onSavePositionSuccess();
     }
 }

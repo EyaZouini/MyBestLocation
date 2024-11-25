@@ -17,6 +17,7 @@ import com.example.mybestlocation.databinding.FragmentCreatePositionBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.MapView;
@@ -30,14 +31,14 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
     private GoogleMap mMap;
     private MapView mapView;
     private FusedLocationProviderClient fusedLocationClient;
-    private LatLng selectedLocation; // Stores the user-selected location on the map
+    private LatLng selectedLocation;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentCreatePositionBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // Initialize FusedLocationProviderClient for location services
+        // Initialize location services
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
         // Setup MapView
@@ -45,16 +46,16 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
-        // Configure the Spinner for position types
+        // Configure Spinner for position types
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 getContext(),
-                R.array.position_types, // Ensure this array is defined in strings.xml
+                R.array.position_types,
                 android.R.layout.simple_spinner_item
         );
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.typeSpinner.setAdapter(adapter);
 
-        // Set up the Save button
+        // Save button listener
         binding.btnSavePosition.setOnClickListener(view -> {
             String name = binding.nameInput.getText().toString();
             String type = binding.typeSpinner.getSelectedItem().toString();
@@ -71,11 +72,6 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
 
     /**
      * Save position data to the server.
-     *
-     * @param latitude  Latitude of the position
-     * @param longitude Longitude of the position
-     * @param name      Name of the position
-     * @param type      Type of the position
      */
     private void savePosition(double latitude, double longitude, String name, String type) {
         HashMap<String, String> params = new HashMap<>();
@@ -84,14 +80,21 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
         params.put("pseudo", name);
         params.put("type", type);
 
-        new SavePositionTask(getContext()).execute(params); // Execute the AsyncTask
+        new SavePositionTask(getContext(), () -> {
+            // Reset fields after successful save
+            binding.nameInput.setText("");
+            binding.typeSpinner.setSelection(0);
+            selectedLocation = null;
+            if (mMap != null) mMap.clear();
+            onMapReady(mMap);
+        }).execute(params);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Request location permissions if not already granted
+        // Request location permissions
         if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(requireActivity(),
@@ -101,21 +104,21 @@ public class CreatePositionFragment extends Fragment implements OnMapReadyCallba
 
         mMap.setMyLocationEnabled(true);
 
-        // Display the user's current location when the map loads
+        // Display user's current location
         fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), location -> {
             if (location != null) {
                 LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
-                mMap.addMarker(new MarkerOptions().position(currentLocation).title("My Location"));
+                mMap.addMarker(new MarkerOptions().position(currentLocation).title("My Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
             } else {
                 Toast.makeText(getContext(), "Unable to fetch current location", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // Set a listener for map clicks to allow users to select a location
+        // Set a listener for map clicks to select a location
         mMap.setOnMapClickListener(latLng -> {
             if (selectedLocation != null) {
-                mMap.clear(); // Clear the previous marker
+                mMap.clear();
             }
             selectedLocation = latLng;
             mMap.addMarker(new MarkerOptions().position(latLng).title("Selected Location"));

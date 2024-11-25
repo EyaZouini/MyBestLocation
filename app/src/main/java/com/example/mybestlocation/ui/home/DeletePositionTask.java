@@ -3,9 +3,7 @@ package com.example.mybestlocation.ui.home;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
-
 import com.example.mybestlocation.Config;
-
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
@@ -14,8 +12,8 @@ import java.net.URL;
 
 public class DeletePositionTask extends AsyncTask<String, Void, String> {
 
-    private Context context;
-    private DeleteCallback callback;
+    private final Context context;
+    private final DeleteCallback callback;
 
     public DeletePositionTask(Context context, DeleteCallback callback) {
         this.context = context;
@@ -24,36 +22,35 @@ public class DeletePositionTask extends AsyncTask<String, Void, String> {
 
     @Override
     protected String doInBackground(String... params) {
-        String idposition = params[0];  // The position ID to delete
+        String idposition = params[0]; // ID of the position to delete
         String result = "";
 
         try {
-            // Build URL and open connection
+            // Configure HTTP connection
             URL url = new URL(Config.Url_DeletePosition);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
 
-            // Prepare data to be sent
+            // Send request data
             String postData = "idposition=" + idposition;
-
-            // Send the data
             try (DataOutputStream writer = new DataOutputStream(connection.getOutputStream())) {
                 writer.writeBytes(postData);
                 writer.flush();
             }
 
-            // Get the response
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder response = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
+            // Read response
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                result = response.toString();
             }
 
-            result = response.toString();
         } catch (Exception e) {
-            Log.e("DeletePositionTask", "Error in deleting position", e);
+            Log.e("DeletePositionTask", "Error deleting position", e);
         }
 
         return result;
@@ -64,17 +61,17 @@ public class DeletePositionTask extends AsyncTask<String, Void, String> {
         super.onPostExecute(result);
 
         if (result.contains("\"success\": 1")) {
-            // Successfully deleted the position
+            // Notify success
             Log.d("DeletePositionTask", "Position deleted successfully");
-            callback.onDeleteSuccess(); // Notify success to the fragment
+            callback.onDeleteSuccess();
         } else {
-            // Failed to delete position
+            // Notify failure
             Log.d("DeletePositionTask", "Failed to delete position");
-            callback.onDeleteFailure(); // Notify failure to the fragment
+            callback.onDeleteFailure();
         }
     }
 
-    // Callback interface
+    // Callback interface for notifying results
     public interface DeleteCallback {
         void onDeleteSuccess();
         void onDeleteFailure();

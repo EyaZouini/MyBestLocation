@@ -2,7 +2,6 @@ package com.example.mybestlocation.ui.home;
 
 import android.app.AlertDialog;
 import android.os.AsyncTask;
-import androidx.recyclerview.widget.RecyclerView;
 import com.example.mybestlocation.Config;
 import com.example.mybestlocation.JSONParser;
 import com.example.mybestlocation.Position;
@@ -29,10 +28,10 @@ public class Download extends AsyncTask<Void, Position, Void> {
 
     @Override
     protected void onPreExecute() {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(adapter.getContext());
-        dialog.setTitle("Téléchargement")
-                .setMessage("Veuillez patienter...");
-        alert = dialog.create();
+        alert = new AlertDialog.Builder(adapter.getContext())
+                .setTitle("Téléchargement")
+                .setMessage("Veuillez patienter...")
+                .create();
         alert.show();
     }
 
@@ -47,37 +46,31 @@ public class Download extends AsyncTask<Void, Position, Void> {
         JSONParser parser = new JSONParser();
         JSONObject response = parser.makeRequest(Config.Url_GetAll);
 
-        try {
-            if (response.getInt("success") > 0) {
-                JSONArray positionsArray = response.getJSONArray("positions");
-                for (int i = 0; i < positionsArray.length(); i++) {
-                    JSONObject positionObject = positionsArray.getJSONObject(i);
-                    int idposition = positionObject.getInt("idposition");
-                    String pseudo = positionObject.getString("pseudo");
-                    String longitude = positionObject.getString("longitude");
-                    String latitude = positionObject.getString("latitude");
-                    String type = positionObject.getString("type");
+        if (response != null) {
+            try {
+                if (response.getInt("success") > 0) {
+                    JSONArray positionsArray = response.getJSONArray("positions");
+                    for (int i = 0; i < positionsArray.length(); i++) {
+                        JSONObject positionObject = positionsArray.getJSONObject(i);
+                        int idposition = positionObject.getInt("idposition");
+                        String pseudo = positionObject.getString("pseudo");
+                        String longitude = positionObject.getString("longitude");
+                        String latitude = positionObject.getString("latitude");
+                        String type = positionObject.getString("type");
 
-                    // Check if position already exists
-                    boolean exists = false;
-                    for (Position position : data) {
-                        if (position.getIdposition() == idposition) {
-                            exists = true;
-                            break;
+                        if (!positionExists(idposition)) {
+                            Position newPosition = new Position(idposition, pseudo, longitude, latitude, type);
+                            synchronized (data) {
+                                data.add(newPosition);
+                            }
+                            publishProgress(newPosition);
                         }
                     }
-
-                    if (!exists) {
-                        Position newPosition = new Position(idposition, pseudo, longitude, latitude, type);
-                        data.add(newPosition);
-                        publishProgress(newPosition); // Update progress
-                    }
                 }
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
             }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
         }
-
         return null;
     }
 
@@ -85,10 +78,10 @@ public class Download extends AsyncTask<Void, Position, Void> {
     protected void onProgressUpdate(Position... values) {
         Position position = values[0];
 
-        // Notify adapter about new data
+        // Notify adapter and update UI
         adapter.notifyDataSetChanged();
 
-        // Add a marker to the map
+        // Add marker to map
         if (mMap != null) {
             LatLng latLng = new LatLng(Double.parseDouble(position.getLatitude()), Double.parseDouble(position.getLongitude()));
             mMap.addMarker(new MarkerOptions().position(latLng).title(position.getPseudo()));
@@ -102,4 +95,12 @@ public class Download extends AsyncTask<Void, Position, Void> {
         }
     }
 
+    private boolean positionExists(int idposition) {
+        for (Position position : data) {
+            if (position.getIdposition() == idposition) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
