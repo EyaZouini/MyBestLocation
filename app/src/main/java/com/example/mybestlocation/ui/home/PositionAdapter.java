@@ -2,6 +2,7 @@
 package com.example.mybestlocation.ui.home;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.mybestlocation.Position;
 import com.example.mybestlocation.R;
@@ -20,6 +22,7 @@ public class PositionAdapter extends RecyclerView.Adapter<PositionAdapter.Positi
     private ArrayList<Position> positions;
     private final Context context;
     private final OnItemClickListener listener;
+    private int selectedPosition = -1;
 
     public PositionAdapter(Context context, ArrayList<Position> positions, OnItemClickListener listener) {
         this.context = context;
@@ -38,37 +41,54 @@ public class PositionAdapter extends RecyclerView.Adapter<PositionAdapter.Positi
 
     @Override
     public void onBindViewHolder(@NonNull PositionViewHolder holder, int position) {
-        // Récupère l'élément courant
         Position currentPosition = positions.get(position);
 
-        // Met à jour le TextView avec les données
+        // Update the TextView with the data
         holder.textView.setText(currentPosition.toString());
 
-        // Gestion du clic sur l'élément entier
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(currentPosition));
+        // Use getAdapterPosition() to ensure the correct position is used
+        if (holder.getAdapterPosition() == selectedPosition) {
+            // Set the selected color
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.selected_item_color));
+        } else {
+            // Reset to transparent background for non-selected items
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, android.R.color.transparent));
+        }
 
+        // Handle the click on the item
+        holder.itemView.setOnClickListener(v -> {
+            // Update the selected position dynamically
+            selectedPosition = holder.getAdapterPosition();  // Get the position of the clicked item
+
+            // Notify the adapter to update the entire list
+            notifyDataSetChanged();  // This will trigger a refresh and update the background color of the selected item
+
+            Log.d("PositionAdapter", "Selected position: " + selectedPosition);  // Log selected position
+
+            // Handle the position click (e.g., zoom into the map)
+            listener.onItemClick(currentPosition);
+        });
+
+        // Handle the delete icon click
         holder.deleteIcon.setOnClickListener(v -> {
-            // Use the context passed in the adapter instead of requireContext
             new DeletePositionTask(context, new DeletePositionTask.DeleteCallback() {
                 @Override
                 public void onDeleteSuccess() {
                     Toast.makeText(context, "Position deleted successfully", Toast.LENGTH_SHORT).show();
-                    // Optionally, you can remove the item from the list if it hasn't been removed yet
                 }
 
                 @Override
                 public void onDeleteFailure() {
+                    // Handle failure
                 }
             }).execute(String.valueOf(currentPosition.getIdposition()));  // Convert int to String
 
-
             // Remove from the local list and update RecyclerView immediately
-            positions.remove(position);
-            notifyItemRemoved(position);
-            notifyItemRangeChanged(position, positions.size());
+            positions.remove(holder.getAdapterPosition()); // Use getAdapterPosition to get the correct position
+            notifyItemRemoved(holder.getAdapterPosition());
+            notifyItemRangeChanged(holder.getAdapterPosition(), positions.size());
         });
     }
-
 
         @Override
     public int getItemCount() {
