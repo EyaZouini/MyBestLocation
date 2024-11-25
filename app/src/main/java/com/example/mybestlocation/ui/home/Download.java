@@ -2,8 +2,7 @@ package com.example.mybestlocation.ui.home;
 
 import android.app.AlertDialog;
 import android.os.AsyncTask;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import androidx.recyclerview.widget.RecyclerView;
 import com.example.mybestlocation.Config;
 import com.example.mybestlocation.JSONParser;
 import com.example.mybestlocation.Position;
@@ -20,17 +19,17 @@ public class Download extends AsyncTask<Void, Position, Void> {
     private AlertDialog alert;
     private final GoogleMap mMap;
     private final ArrayList<Position> data;
-    private final ListView listView;
+    private final PositionAdapter adapter;
 
-    public Download(GoogleMap map, ArrayList<Position> data, ListView listView) {
+    public Download(GoogleMap map, ArrayList<Position> data, PositionAdapter adapter) {
         this.mMap = map;
         this.data = data;
-        this.listView = listView;
+        this.adapter = adapter;
     }
 
     @Override
     protected void onPreExecute() {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(listView.getContext());
+        AlertDialog.Builder dialog = new AlertDialog.Builder(adapter.getContext());
         dialog.setTitle("Téléchargement")
                 .setMessage("Veuillez patienter...");
         alert = dialog.create();
@@ -86,11 +85,8 @@ public class Download extends AsyncTask<Void, Position, Void> {
     protected void onProgressUpdate(Position... values) {
         Position position = values[0];
 
-        // Update the ListView with new data
-        if (listView != null) {
-            ArrayAdapter<Position> adapter = new ArrayAdapter<>(listView.getContext(), android.R.layout.simple_list_item_1, data);
-            listView.setAdapter(adapter);
-        }
+        // Notify adapter about new data
+        adapter.notifyDataSetChanged();
 
         // Add a marker to the map
         if (mMap != null) {
@@ -105,4 +101,5 @@ public class Download extends AsyncTask<Void, Position, Void> {
             alert.dismiss();
         }
     }
+
 }

@@ -45,8 +45,8 @@
         app:iconifiedByDefault="false" />
 
     <!-- Liste des positions -->
-    <ListView
-        android:id="@+id/lv"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_positions"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

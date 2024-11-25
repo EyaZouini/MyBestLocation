@@ -6,10 +6,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.mybestlocation.R;
 import com.example.mybestlocation.Position;
 import com.example.mybestlocation.databinding.FragmentHomeBinding;
@@ -25,7 +25,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationCallback;
-import android.widget.TextView;
+import androidx.appcompat.widget.SearchView;
 import android.widget.Toast;
 import java.util.ArrayList;
 
@@ -37,19 +37,55 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private ArrayList<Position> data = new ArrayList<>();
+    private PositionAdapter adapter;
+    private SearchView searchView;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        initializeLocationServices();
+        searchView = binding.searchBar;  // Initialize the SearchView
 
-        setupSearchBar();
+        initializeLocationServices();
         setupMap();
+        setupSearchView();
 
         return root;
     }
+
+    private void setupSearchView() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // You can handle query submission here if needed
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // When the text in the search view changes, filter the list
+                filterPositions(newText);
+                return true;
+            }
+        });
+    }
+
+    private void filterPositions(String query) {
+        ArrayList<Position> filteredList = new ArrayList<>();
+        for (Position position : data) {
+            // Check if the pseudo or type contains the query text (case-insensitive)
+            if (position.getPseudo().toLowerCase().contains(query.toLowerCase()) ||
+                    position.getType().toLowerCase().contains(query.toLowerCase())) {
+                filteredList.add(position);
+            }
+        }
+
+        // Update the adapter with the filtered list
+        adapter.updateList(filteredList);
+    }
+
+
 
     private void initializeLocationServices() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
@@ -78,21 +114,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         };
     }
 
-    private void setupSearchBar() {
-        binding.searchBar.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                filterList(newText);
-                return true;
-            }
-        });
-    }
-
     private void setupMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -115,46 +136,23 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void loadPositions() {
-        new Download(mMap, data, binding.lv).execute();
-        setupListView();
-    }
-
-    private void setupListView() {
-        ArrayAdapter<Position> adapter = new ArrayAdapter<Position>(requireActivity(), android.R.layout.simple_list_item_1, data) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-                TextView textView = view.findViewById(android.R.id.text1);
-                textView.setText(data.get(position).toString());
-                return view;
-            }
-        };
-
-        binding.lv.setAdapter(adapter);
-        binding.lv.setOnItemClickListener((parent, view, position, id) -> {
-            Position selectedPosition = data.get(position);
+        adapter = new PositionAdapter(requireActivity(), data, position -> {
+            // Handle item click
             LatLng latLng = new LatLng(
-                    Double.parseDouble(selectedPosition.getLatitude()),
-                    Double.parseDouble(selectedPosition.getLongitude())
+                    Double.parseDouble(position.getLatitude()),
+                    Double.parseDouble(position.getLongitude())
             );
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
             mMap.addMarker(new MarkerOptions()
                     .position(latLng)
-                    .title(selectedPosition.getPseudo()));
+                    .title(position.getPseudo()));
         });
-    }
 
-    private void filterList(String query) {
-        ArrayList<Position> filteredData = new ArrayList<>();
-        for (Position position : data) {
-            if (position.getPseudo().toLowerCase().contains(query.toLowerCase()) ||
-                    position.getType().toLowerCase().contains(query.toLowerCase())) {
-                filteredData.add(position);
-            }
-        }
+        binding.rvPositions.setLayoutManager(new LinearLayoutManager(requireActivity()));
+        binding.rvPositions.setAdapter(adapter);
 
-        ArrayAdapter<Position> adapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, filteredData);
-        binding.lv.setAdapter(adapter);
+        // Pass the adapter to the Download task
+        new Download(mMap, data, adapter).execute();
     }
 
     private void startLocationUpdates() {

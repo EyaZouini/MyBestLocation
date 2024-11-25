@@ -4,46 +4,41 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.mybestlocation.Position;
-import com.example.mybestlocation.R;
-
 import java.util.ArrayList;
 
 public class PositionAdapter extends RecyclerView.Adapter<PositionAdapter.PositionViewHolder> {
 
+    private ArrayList<Position> positions;
     private final Context context;
-    private final ArrayList<Position> positions;
-    private final OnPositionDeleteListener deleteListener;
+    private final OnItemClickListener listener;
 
-    public interface OnPositionDeleteListener {
-        void onDelete(Position position, int positionIndex);
-    }
-
-    public PositionAdapter(Context context, ArrayList<Position> positions, OnPositionDeleteListener deleteListener) {
+    public PositionAdapter(Context context, ArrayList<Position> positions, OnItemClickListener listener) {
         this.context = context;
         this.positions = positions;
-        this.deleteListener = deleteListener;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
     public PositionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.list_item_position, parent, false);
+        // Inflate the item layout and return the ViewHolder
+        View view = LayoutInflater.from(context)
+                .inflate(android.R.layout.simple_list_item_1, parent, false);
         return new PositionViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull PositionViewHolder holder, int position) {
+        // Bind the position data to the ViewHolder
         Position currentPosition = positions.get(position);
-        holder.positionText.setText(currentPosition.toString());
+        holder.textView.setText(currentPosition.toString());
 
-        holder.deleteButton.setOnClickListener(v -> deleteListener.onDelete(currentPosition, position));
+        // Set item click listener
+        holder.itemView.setOnClickListener(v -> listener.onItemClick(currentPosition));
     }
 
     @Override
@@ -51,15 +46,28 @@ public class PositionAdapter extends RecyclerView.Adapter<PositionAdapter.Positi
         return positions.size();
     }
 
+    public void updateList(ArrayList<Position> newPositions) {
+        // Update the positions and notify the adapter
+        positions = new ArrayList<>(newPositions);
+        notifyDataSetChanged();
+    }
+
+    // ViewHolder class to hold the item views
     static class PositionViewHolder extends RecyclerView.ViewHolder {
-        TextView positionText;
-        ImageButton deleteButton;
+        final TextView textView;
 
         public PositionViewHolder(@NonNull View itemView) {
             super(itemView);
-            positionText = itemView.findViewById(R.id.position_text);
-            deleteButton = itemView.findViewById(R.id.delete_button);
+            textView = itemView.findViewById(android.R.id.text1);
         }
     }
-}
 
+    public Context getContext() {
+        return context;
+    }
+
+    // Interface for handling item clicks
+    public interface OnItemClickListener {
+        void onItemClick(Position position);
+    }
+}
