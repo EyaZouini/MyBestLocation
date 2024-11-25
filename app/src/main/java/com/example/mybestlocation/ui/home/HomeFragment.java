@@ -137,15 +137,17 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
     private void loadPositions() {
         adapter = new PositionAdapter(requireActivity(), data, position -> {
-            // Handle item click
+            // Handle the click on the item
             LatLng latLng = new LatLng(
                     Double.parseDouble(position.getLatitude()),
                     Double.parseDouble(position.getLongitude())
             );
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
             mMap.addMarker(new MarkerOptions()
                     .position(latLng)
                     .title(position.getPseudo()));
+
+            Toast.makeText(requireContext(), "Position: " + position.getPseudo(), Toast.LENGTH_SHORT).show();
         });
 
         binding.rvPositions.setLayoutManager(new LinearLayoutManager(requireActivity()));

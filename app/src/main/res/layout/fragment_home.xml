@@ -47,6 +47,7 @@
     <!-- Liste des positions -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_positions"
+        android:contentDescription="Carte affichant les positions"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
