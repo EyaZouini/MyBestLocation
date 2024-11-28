@@ -31,6 +31,16 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCEg4bxJdP446Yvwm2hp-csOgtwQ2R_qsc" />
 
+        <receiver
+            android:name=".SmsReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
