@@ -1,6 +1,10 @@
 package com.example.mybestlocation.ui.slideshow;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.telephony.SmsManager;
@@ -14,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.mybestlocation.R;
 import com.example.mybestlocation.databinding.FragmentFriendsBinding;
@@ -126,4 +131,46 @@ public class FriendsFragment extends Fragment implements OnMapReadyCallback {
             }
         }
     }
+
+    private final BroadcastReceiver locationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Récupérer les coordonnées depuis l'intent
+            double latitude = intent.getDoubleExtra("latitude", 0);
+            double longitude = intent.getDoubleExtra("longitude", 0);
+
+            // Mettre à jour la carte avec les nouvelles coordonnées
+            afficherPositionSurCarte(latitude, longitude);
+        }
+    };
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Enregistrer le récepteur pour écouter les mises à jour de position
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(locationReceiver, new IntentFilter("com.example.mybestlocation.LOCATION_UPDATE"));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Désinscrire le récepteur lorsque le fragment est en pause
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(locationReceiver);
+    }
+
+    public void afficherPositionSurCarte(double latitude, double longitude) {
+        if (mMap != null) {
+            LatLng newLocation = new LatLng(latitude, longitude);
+
+            // Ajouter un nouveau marqueur à la carte
+            mMap.addMarker(new MarkerOptions().position(newLocation)
+                    .title("Position de l'ami")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+
+            // Déplacer la caméra vers cette position
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 15));
+        }
+    }
+
+
+
 }

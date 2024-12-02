@@ -11,6 +11,10 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SmsReceiver extends BroadcastReceiver {
 
@@ -53,6 +57,24 @@ public class SmsReceiver extends BroadcastReceiver {
                         // Répondre avec une position fixe
                         String position = "Ma position actuelle est : Latitude: 35.82110135036956, Longitude: 10.631215386092663";
                         envoyerSms(phoneNumber, position, context); // Envoi des coordonnées fixes
+                    } else if (messageBody.contains("Ma position actuelle est : Latitude")) {
+                        String regex = "Latitude: (-?\\d+\\.\\d+), Longitude: (-?\\d+\\.\\d+)";
+                        Pattern pattern = Pattern.compile(regex);
+                        Matcher matcher = pattern.matcher(messageBody);
+
+                        if (matcher.find()) {
+                            double latitude = Double.parseDouble(matcher.group(1));
+                            double longitude = Double.parseDouble(matcher.group(2));
+
+                            // Envoyer les coordonnées via un broadcast local
+                            Intent broadcastIntent = new Intent("com.example.mybestlocation.LOCATION_UPDATE");
+                            broadcastIntent.putExtra("latitude", latitude);
+                            broadcastIntent.putExtra("longitude", longitude);
+
+                            // Utiliser LocalBroadcastManager pour envoyer le broadcast
+                            LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
+                            Log.d(TAG, "Broadcast envoyé avec latitude: " + latitude + " et longitude: " + longitude);
+                        }
                     } else {
                         Log.d(TAG, "Message ne correspond pas à la commande.");
                     }
